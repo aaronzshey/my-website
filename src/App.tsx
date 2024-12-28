@@ -8,6 +8,11 @@ export default function App() {
       <ambientLight intensity={0.5} />
       <ScrollControls pages={3}>
         <Cube />
+
+        <mesh position={[0, 10, 0]}>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="orange" />
+        </mesh>
       </ScrollControls>
     </Canvas>
   )
