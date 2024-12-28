@@ -2,6 +2,7 @@
   "name": "diamond-refraction",
   "version": "1.0.0",
   "description": "Diamond refraction material",
+  "type": "module",
   "keywords": [
     "diamond",
     "refraction",
