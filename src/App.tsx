@@ -1,39 +1,69 @@
-import { Canvas } from "@react-three/fiber";
+import { useRef } from 'react'
+import { Mesh } from 'three'
+import type { DataTexture } from 'three'
+import { Canvas, useLoader, useFrame } from '@react-three/fiber'
 import {
-    Text3D,
-} from "@react-three/drei";
-import { OrbitControls } from '@react-three/drei'
+    Caustics,
+    useGLTF,
+    CubeCamera,
+    Environment,
+    OrbitControls,
+    MeshRefractionMaterial,
+} from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
+import { RGBELoader } from 'three-stdlib'
 
-function Scene() {
+import { easing } from 'maath'
+
+
+import type { MeshProps } from '@react-three/fiber'
+
+function Diamond(props: MeshProps) {
+    const ref = useRef<Mesh>(null!)
+    const { nodes } = useGLTF('/dflat.glb')
+    // we know that the diamond is a mesh, so we can use this code
+    // however, it is dangerous and a bad practice
+    const diamond = nodes.Diamond_1_0 as Mesh
+    console.log(nodes)
+    // Use a custom envmap/scene-backdrop for the diamond material
+    // This way we can have a clear BG while cube-cam can still film other objects
+    const texture: DataTexture = useLoader(RGBELoader, 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/aerodynamics_workshop_1k.hdr')
+    // Optional config
+    const config = {
+        "bounces": 3,
+        "aberrationStrength": 0.01,
+        "ior": 2.75,
+        "fresnel": 1,
+        "color": "grey"
+    }
+
     return (
-        <Text3D
-            curveSegments={32}
-            bevelEnabled
-            bevelSize={0.04}
-            bevelThickness={0.01}
-            height={0.5}
-            lineHeight={0.5}
-            letterSpacing={0.06}
-            size={0.5}
-            font="/Inter_Thin.json">
-            {`Lorem ipsum dolor sit amet, consectetur adipiscing elit\n
-Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua\n
-Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat\n
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur\n
-Excepteur sint occaecat cupid`}
-            <meshNormalMaterial />
-        </Text3D>
+        <mesh castShadow ref={ref} geometry={diamond.geometry} {...props}>
+            <MeshRefractionMaterial envMap={texture} {...config} toneMapped={false} />
+        </mesh>
     )
 }
 
+function BuildEnvAndLight() {
+    return (
+        <>
+            <color attach="background" args={['#000']} />
+            <ambientLight intensity={0.5 * Math.PI} />
+            <spotLight decay={0} position={[5, 5, -10]} angle={0.15} penumbra={1} />
+            <pointLight decay={0} position={[-10, -10, -10]} />
+            <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/aerodynamics_workshop_1k.hdr" />
+        </>
+    );
+}
 export default function App() {
     return (
-        <Canvas orthographic camera={{ position: [0, 0, 100], zoom: 100 }}>
-            <ambientLight intensity={0.5} />
-            <directionalLight position={[10, 10, 10]} />
-            <Scene />
-            <OrbitControls />
+        <Canvas shadows camera={{ position: [-5, 0.5, 5], fov: 45 }}>
+            <Diamond position={[0, -0.175 + 0.5, 0]} />
+            <BuildEnvAndLight />
+            <EffectComposer>
+                <Bloom luminanceThreshold={1} intensity={2} levels={9} mipmapBlur />
+            </EffectComposer>
+            <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI / 2} minAzimuthAngle={-Math.PI / 2} maxAzimuthAngle={Math.PI / 2} />
         </Canvas>
     )
 }
-
