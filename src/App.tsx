@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 import { Mesh } from 'three'
 import type { DataTexture } from 'three'
 import { Canvas, useLoader, useFrame } from '@react-three/fiber'
