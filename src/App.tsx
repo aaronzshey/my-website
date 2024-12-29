@@ -58,7 +58,7 @@ function MoveCameraOnScroll() {
     const scroll = useScroll()
     useFrame((state) => {
         const offset = 1 - scroll.offset
-        state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, (offset * 20) - 20, 0.1)
+        state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, (offset * 15) - 15, 0.1)
         console.log(state.camera.position)
     })
     return <></>
@@ -80,7 +80,7 @@ function Logo(props: JSX.IntrinsicElements['group']) {
         <>
             <group {...props} dispose={null}>
                 <mesh ref={meshRef} geometry={linkedin.geometry}
-                    position={[0, -9, 0]}
+                    position={[0, -8, 0]}
                     onClick={() => window.open('https://www.linkedin.com/in/aaron-z-shey')}
                     onPointerEnter={() => document.body.style.cursor = 'pointer'}
                     onPointerLeave={() => document.body.style.cursor = 'auto'}
@@ -110,14 +110,14 @@ export default function App() {
                 </Html>
 
 
-                <Diamond position={[0, -5, 0]} />
-                <Html position={[-1, -10, 0]} as='div'>
+                <Diamond position={[0, -4, 0]} />
+                <Html position={[-1, -6, 0]} as='div'>
                     我是許智仁
                 </Html>
-                <Html position={[0, -10, 0]} as='div'>
+                <Html position={[0, -6, 0]} as='div'>
                     我寫網站和教程
                 </Html>
-                <Html position={[1, -10, 0]} as='div'>
+                <Html position={[1, -6, 0]} as='div'>
                     我喜歡在海浪邊散步
                 </Html>
 

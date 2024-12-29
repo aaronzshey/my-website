@@ -1,15 +1,8 @@
 {
-  "name": "react-three-sandbox",
+  "name": "my-website",
   "version": "1.0.0",
-  "homepage": "https://aaronzshey.github.io/react-three-sandbox",
-  "description": "Diamond refraction material",
+  "description": "Aaron's website",
   "type": "module",
-  "keywords": [
-    "diamond",
-    "refraction",
-    "raycast",
-    "bvh"
-  ],
   "main": "src/main.tsx",
   "dependencies": {
     "@react-three/drei": "^9.120.4",
@@ -39,8 +32,6 @@
     "vite": "^6.0.1"
   },
   "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
