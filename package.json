@@ -1,5 +1,5 @@
 {
-  "name": "diamond-refraction",
+  "name": "react-three-sandbox",
   "version": "1.0.0",
   "homepage": "https://aaronzshey.github.io/react-three-sandbox",
   "description": "Diamond refraction material",
@@ -10,7 +10,7 @@
     "raycast",
     "bvh"
   ],
-  "main": "src/index.js",
+  "main": "src/main.tsx",
   "dependencies": {
     "@react-three/drei": "^9.120.4",
     "@react-three/fiber": "^8.17.10",
