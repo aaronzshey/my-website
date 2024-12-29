@@ -1,105 +1,132 @@
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import { Mesh } from 'three'
 import type { DataTexture } from 'three'
-import { Canvas, useLoader } from '@react-three/fiber'
+import { Canvas, useLoader, useFrame } from '@react-three/fiber'
 import {
-  useGLTF,
-  Caustics,
-  CubeCamera,
-  Environment,
-  OrbitControls,
-  RandomizedLight,
-  AccumulativeShadows,
-  MeshRefractionMaterial,
-  MeshTransmissionMaterial,
+    useGLTF,
+    Environment,
+    MeshRefractionMaterial,
+    useScroll,
+    ScrollControls,
+    Html
 } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { RGBELoader } from 'three-stdlib'
-import { useControls } from 'leva'
 
 import type { MeshProps } from '@react-three/fiber'
+import * as THREE from 'three'
 
 function Diamond(props: MeshProps) {
-  const ref = useRef<Mesh>(null!)
-  const { nodes } = useGLTF('/Curve.glb')
-  // we know that the diamond is a mesh, so we can use this code
-  // however, it is dangerous and a bad practice
-  const diamond = nodes.BézierCurve as Mesh
+    const ref = useRef<Mesh>(null!)
+    const { nodes } = useGLTF('/dflat.glb')
+    // we know that the diamond is a mesh, so we can use this code
+    // however, it is dangerous and a bad practice
+    const diamond = nodes.Diamond_1_0 as Mesh
+    console.log(nodes)
+    // Use a custom envmap/scene-backdrop for the diamond material
+    // This way we can have a clear BG while cube-cam can still film other objects
+    const texture: DataTexture = useLoader(RGBELoader, 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/aerodynamics_workshop_1k.hdr')
+    // Optional config
+    const config = {
+        "bounces": 3,
+        "aberrationStrength": 0.01,
+        "ior": 2.75,
+        "fresnel": 1,
+        "color": "grey"
+    }
 
-  //const diamond = nodes.Diamond_1_0 as Mesh
-  // Use a custom envmap/scene-backdrop for the diamond material
-  // This way we can have a clear BG while cube-cam can still film other objects
-  const texture: DataTexture = useLoader(RGBELoader, 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/aerodynamics_workshop_1k.hdr')
-  // Optional config
-  const config = useControls({
-    bounces: { value: 3, min: 0, max: 8, step: 1 },
-    aberrationStrength: { value: 0.01, min: 0, max: 0.1, step: 0.01 },
-    ior: { value: 2.75, min: 0, max: 10 },
-    fresnel: { value: 1, min: 0, max: 1 },
-    color: 'white',
-  })
-  return (
-    <CubeCamera resolution={256} frames={1} envMap={texture}>
-      {(texture) => (
-        <Caustics
-          causticsOnly={false}
-          backside={true}
-          color={config.color}
-          position={[0, -0.5, 0]}
-          lightSource={[5, 5, -10]}
-          worldRadius={0.1}
-          ior={1.8}
-          backsideIOR={1.1}
-          intensity={0.1}>
-          <mesh castShadow ref={ref} geometry={diamond.geometry} {...props}>
+    return (
+        <mesh castShadow ref={ref} geometry={diamond.geometry} {...props}>
             <MeshRefractionMaterial envMap={texture} {...config} toneMapped={false} />
-          </mesh>
-        </Caustics>
-      )}
-    </CubeCamera>
-  )
+        </mesh>
+    )
+}
+
+function BuildEnvAndLight() {
+    return (
+        <>
+            <color attach="background" args={['#000']} />
+            <ambientLight intensity={0.5 * Math.PI} />
+            <spotLight decay={0} position={[5, 5, -10]} angle={0.15} penumbra={1} />
+            <pointLight decay={0} position={[-10, -10, -10]} />
+            <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/aerodynamics_workshop_1k.hdr" />
+        </>
+    );
+}
+
+function MoveCameraOnScroll() {
+    const scroll = useScroll()
+    useFrame((state) => {
+        const offset = 1 - scroll.offset
+        state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, (offset * 20) - 20, 0.1)
+        console.log(state.camera.position)
+    })
+    return <></>
+}
+
+function Logo(props: JSX.IntrinsicElements['group']) {
+    const { nodes } = useGLTF('/LinkedIn.glb')
+    const linkedin = nodes.LinkedIn as Mesh
+    const meshRef = useRef<Mesh>(null!)
+
+
+    useFrame((state) => {
+        if (meshRef.current) {
+            meshRef.current.rotation.y = state.pointer.x / 20 * Math.PI;
+            meshRef.current.rotation.x = state.pointer.y / 10 * Math.PI + Math.PI / 2;
+        }
+    })
+    return (
+        <>
+            <group {...props} dispose={null}>
+                <mesh ref={meshRef} geometry={linkedin.geometry}
+                    position={[0, -9, 0]}
+                    onClick={() => window.open('https://www.linkedin.com/in/aaron-z-shey')}
+                    onPointerEnter={() => document.body.style.cursor = 'pointer'}
+                    onPointerLeave={() => document.body.style.cursor = 'auto'}
+                >
+                    <meshNormalMaterial />
+                </mesh>
+            </group >
+        </>
+    )
 }
 
 export default function App() {
-  return (
-    <Canvas shadows camera={{ position: [-5, 0.5, 5], fov: 45 }}>
-      <color attach="background" args={['#f0f0f0']} />
-      <ambientLight intensity={0.5 * Math.PI} />
-      <spotLight decay={0} position={[5, 5, -10]} angle={0.15} penumbra={1} />
-      <pointLight decay={0} position={[-10, -10, -10]} />
-      <Diamond rotation={[0, 0, 0.715]} position={[0, -0.175 + 0.5, 0]} />
-      <Caustics color="#FF8F20" position={[0, -0.5, 0]} lightSource={[5, 5, -10]} worldRadius={0.01} ior={1.2} intensity={0.005} causticsOnly={false} backside={false}>
-        <mesh castShadow receiveShadow position={[-2, 0.5, -1]} scale={0.5}>
-          <sphereGeometry args={[1, 64, 64]} />
-          <MeshTransmissionMaterial resolution={1024} distortion={0.25} color="#FF8F20" thickness={1} anisotropy={1} />
-        </mesh>
-      </Caustics>
-      <mesh castShadow receiveShadow position={[1.75, 0.25, 1]} scale={0.75}>
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshStandardMaterial color="hotpink" />
-      </mesh>
+    return (
+        <Canvas shadows camera={{ fov: 45, position: [0, 0, 5] }}>
+            <ScrollControls>
+                <MoveCameraOnScroll />
 
-      <mesh castShadow receiveShadow position={[2.75, 2.25, 1]} scale={0.75}>
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshStandardMaterial color="hotpink" />
-      </mesh>
-      <AccumulativeShadows
-        temporal
-        frames={100}
-        color="orange"
-        colorBlend={2}
-        toneMapped={true}
-        alphaTest={0.7}
-        opacity={1}
-        scale={12}
-        position={[0, -0.5, 0]}>
-        <RandomizedLight amount={8} radius={10} ambient={0.5} position={[5, 5, -10]} bias={0.001} />
-      </AccumulativeShadows>
-      <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/aerodynamics_workshop_1k.hdr" />
-      <OrbitControls makeDefault autoRotate autoRotateSpeed={0.1} minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
-      <EffectComposer>
-        <Bloom luminanceThreshold={1} intensity={2} levels={9} mipmapBlur />
-      </EffectComposer>
-    </Canvas>
-  )
+                <Diamond position={[0, 0, 0]} />
+                <Html position={[-1, -1, 0]} as='div'>
+                    I'm Aaron
+                </Html>
+                <Html position={[0, -1, 0]} as='div'>
+                    I write websites and tutorials
+                </Html>
+                <Html position={[1, -1, 0]} as='div'>
+                    I love electric vehicles and React.
+                </Html>
+
+
+                <Diamond position={[0, -5, 0]} />
+                <Html position={[-1, -10, 0]} as='div'>
+                    我是許智仁
+                </Html>
+                <Html position={[0, -10, 0]} as='div'>
+                    我寫網站和教程
+                </Html>
+                <Html position={[1, -10, 0]} as='div'>
+                    我喜歡在海浪邊散步
+                </Html>
+
+                <Logo />
+                <BuildEnvAndLight />
+                <EffectComposer>
+                    <Bloom luminanceThreshold={1} intensity={2} levels={9} mipmapBlur />
+                </EffectComposer>
+            </ScrollControls>
+        </Canvas >
+    )
 }
